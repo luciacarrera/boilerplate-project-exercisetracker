@@ -9,6 +9,11 @@ require('dotenv').config()
 app.use(cors())
 app.use(express.static('public'))
 app.use(bodyParser.urlencoded({ extended: false }));
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.path} - ${req.ip}`);
+//   console.log(JSON.stringify(req.body))
+//   next();
+// });
 app.get('/', sendUI);
 
 app.post('/api/users', createNewUser )
