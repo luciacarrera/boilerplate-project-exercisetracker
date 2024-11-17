@@ -20,7 +20,6 @@ app.use((req, res, next) => {
 
 app.post('/api/users',(request, response )=>{
   const user = new ExerciseTracker({username: request.body.username})
-  console.log(user)
   user.save()
   .then(()=> {
     response.json({username: user.username, _id: String(user.id)})
@@ -31,8 +30,25 @@ app.post('/api/users',(request, response )=>{
 })
 
 app.get('/api/users', (request, response) => {
-  const exerciseTrackers = ExerciseTracker.find({})
-  console.log(exerciseTrackers)
+  ExerciseTracker.find({}).then(ex => {response.json(ex)})
+})
+
+app.post('/api/users/:_id/exercises', (request,response) => {
+  const id = request.params._id
+  const description = request.body.description
+  const duration = Number(request.body.duration)
+  let date = request.body.date
+
+  if(!date) date = Date.now()
+  date = new Date(date).toDateString()
+  ExerciseTracker.findById(id)
+    .then(tracker => {
+      let log = tracker.log
+      log = [...log, {date, duration, description}]
+      ExerciseTracker.updateOne({_id: id}, {log})
+      response.json({_id: String(id), username: tracker.username, description, duration, date})
+    })
+
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
