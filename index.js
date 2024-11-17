@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
 });
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - ${req.ip}`);
+  console.log(`\n\n${req.method} ${req.path} - ${req.ip}`);
   console.log(JSON.stringify(req.body))
   next();
 });
@@ -30,7 +30,11 @@ app.post('/api/users',(request, response )=>{
 })
 
 app.get('/api/users', (request, response) => {
-  ExerciseTracker.find({}).then(ex => {response.json(ex)})
+  ExerciseTracker.find({}).then((trackers) => {
+    response.json(trackers)
+  }).catch(() => {
+    response.sendStatus(500)
+  })
 })
 
 app.post('/api/users/:_id/exercises', (request,response) => {
@@ -41,13 +45,33 @@ app.post('/api/users/:_id/exercises', (request,response) => {
 
   if(!date) date = Date.now()
   date = new Date(date).toDateString()
+
   ExerciseTracker.findById(id)
     .then(tracker => {
       let log = tracker.log
       log = [...log, {date, duration, description}]
+      console.log('log',log)
       ExerciseTracker.updateOne({_id: id}, {log})
-      response.json({_id: String(id), username: tracker.username, description, duration, date})
+        .then((updated) =>{ 
+          response.json({_id: String(id), username: tracker.username, description, duration, date})    
+        })
+        .catch(() => {
+          response.sendStatus(500)
+        })
     })
+})
+
+app.get('/api/users/:_id/logs', (request, response) => {
+  const {_id} = request.params
+  const { from, to, limit} = request.query
+  console.log(from, to, limit)
+  ExerciseTracker.findById(_id)
+    .then((tracker) => {
+    if(from || to) tracker.log.map((exercise) => {
+      if(date => from && date < to) return exercise
+    })
+    if(limit) tracker.log = tracker.log.slice(0, limit)
+    response.json(tracker)})
 
 })
 

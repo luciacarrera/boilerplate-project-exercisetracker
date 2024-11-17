@@ -12,6 +12,11 @@ const exerciseTrackerSchema = new mongoose.Schema(
     },{ toJSON: {
         transform: function(document, returnedObject){
             delete returnedObject.__v
+            returnedObject.log.map(exercise => delete exercise._id)
+            const count = returnedObject.log.length
+            returnedObject.count = count
+            returnedObject._id = String(returnedObject._id)
+            console.log('returnedObject', returnedObject)
         },
         },
     },
